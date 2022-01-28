@@ -1,16 +1,16 @@
 from ast import parse
 import PySimpleGUI as sg;
-from TestParse import parser
+from Parser import parser
 
 layout = [[sg.T("")],
-          [sg.Text("Choose a file: "), sg.Input(), sg.FileBrowse(key="-IN-")],
-          [sg.Text("Name your process: "), sg.Input(key="Path")],
+          [sg.Text("Choose a file: ", size=(15,1)), sg.Input(), sg.FileBrowse(key="-IN-")],
+          [sg.Text("Name your process: ", size=(15,1)), sg.Input(key="Path"), sg.Text("Hint: Add '.yawl' to your Name")],
           [sg.Button("Submit")],
           [sg.Text("Choose a file and name your process. Then click submit it to generate the YAWL Process XML")]
           ]
 
 ###Building Window
-window = sg.Window('BPMN2YAWL', layout, size=(600,150))
+window = sg.Window('BPMN2YAWL', layout, size=(700,150))
 
 # Create an event loop
 while True:
