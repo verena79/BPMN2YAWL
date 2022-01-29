@@ -2,6 +2,8 @@ from ast import parse
 import PySimpleGUI as sg;
 from Parser import parser
 
+sg.theme('Reddit')
+
 layout = [[sg.T("")],
           [sg.Text("Choose a file: ", size=(15,1)), sg.Input(), sg.FileBrowse(key="-IN-")],
           [sg.Text("Name your process: ", size=(15,1)), sg.Input(key="Path"), sg.Text("Hint: Add '.yawl' to your Name")],
