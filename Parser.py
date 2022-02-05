@@ -1,5 +1,8 @@
+from mailbox import NotEmptyError
 from xml.dom import minidom
 from xml.etree.ElementTree import tostring
+
+from numpy import empty
 
 def parser(bpmnProcess, path):
     doc = minidom.parse(bpmnProcess)
@@ -260,6 +263,31 @@ def parser(bpmnProcess, path):
                 bounds.setAttribute('w', labelBounds.getAttribute("width"))
                 bounds.setAttribute('h', labelBounds.getAttribute("height"))
                 attributes.appendChild(bounds)
+
+            # if task has two incomings - set XOR Join
+            # decorator
+                countIncoming = len(task.getElementsByTagName("incoming"))
+                if countIncoming > 1:
+                    # join
+                    decorator = yawl.createElement('decorator')
+                    decorator.setAttribute('type', 'XOR_join')
+                    containerTask.appendChild(decorator)
+                
+                    position = yawl.createElement('position') 
+                    position.appendChild( yawl.createTextNode('12') )
+                    decorator.appendChild(position)
+
+                    attributes = yawl.createElement('attributes')
+                    decorator.appendChild(attributes)
+                   
+                    bounds = yawl.createElement('bounds')    
+                    x = float(shapeBounds.getAttribute("x"))-10    
+                    bounds.setAttribute('x', str(x))
+                    bounds.setAttribute('y', shapeBounds.getAttribute("y"))
+                    bounds.setAttribute('w', '11')
+                    bounds.setAttribute('h', shapeBounds.getAttribute("height"))
+                    attributes.appendChild(bounds)
+
     
     # end
     ends = doc.getElementsByTagName("endEvent")
@@ -311,10 +339,342 @@ def parser(bpmnProcess, path):
                 bounds.setAttribute('h', labelBounds.getAttribute("height"))
                 attributes.appendChild(bounds)
     
-    
+    # sub process
+    # TODO: fix bug.. composite task is shown like normal task
+    subProcesses = doc.getElementsByTagName("subProcess")
+    for subP in subProcesses:
+        compositeTask = yawl.createElement("task")
+        compositeTask.setAttribute("id", subP.getAttribute("id"))
+        processControlElements.appendChild(compositeTask)
+
+        # name
+        name = yawl.createElement('name')
+        name.appendChild(yawl.createTextNode(subP.getAttribute("name")))
+        compositeTask.appendChild(name)  
+
+        # flowsInto
+        flowsInto = yawl.createElement('flowsInto')
+        compositeTask.appendChild(flowsInto) 
+
+        #nextElementRef
+        nextElementRef = yawl.createElement('nextElementRef')
+        #get next Element
+        outgoing = subP.getElementsByTagName("outgoing")
+        flows = doc.getElementsByTagName("sequenceFlow")
+        for flow in flows:
+            if outgoing[0].firstChild.nodeValue == flow.getAttribute("id"):
+                nextElementRef.setAttribute("id", flow.getAttribute("targetRef"))
+                flowsInto.appendChild(nextElementRef)
+        
+        #is Default Flow
+        default = yawl.createElement('isDefaultFlow')
+        compositeTask.appendChild(default)
+
+        #join
+        join = yawl.createElement('join')
+        join.setAttribute("code", "xor")
+        compositeTask.appendChild(join) 
+
+        #split
+        split = yawl.createElement('split')
+        split.setAttribute("code", "and")
+        compositeTask.appendChild(split) 
+
+        #layout
+        containerTask = yawl.createElement('container')
+        containerTask.setAttribute('id', subP.getAttribute("id"))
+        net.appendChild(containerTask)
+
+        vertex = yawl.createElement('vertex')
+        containerTask.appendChild(vertex)
+
+        attributes = yawl.createElement('attributes')
+        vertex.appendChild(attributes)
+
+        bounds = yawl.createElement('bounds')
+        #get Bounds from BPMN
+        shapes = doc.getElementsByTagName("bpmndi:BPMNShape")
+        for shape in shapes:
+            if shape.getAttribute("bpmnElement") == subP.getAttribute("id"):
+                shapeBounds = shape.getElementsByTagName("omgdc:Bounds")[0]
+                labelBounds = shape.getElementsByTagName("omgdc:Bounds")[1]       
+
+                bounds.setAttribute('x', shapeBounds.getAttribute("x"))
+                bounds.setAttribute('y', shapeBounds.getAttribute("y"))
+                bounds.setAttribute('w', shapeBounds.getAttribute("width"))
+                bounds.setAttribute('h', shapeBounds.getAttribute("height"))
+                attributes.appendChild(bounds)
+
+                labelE = yawl.createElement('label')
+                containerTask.appendChild(labelE)
+
+                attributes = yawl.createElement('attributes')
+                labelE.appendChild(attributes)
+
+                bounds = yawl.createElement('bounds')    
+                bounds.setAttribute('x', labelBounds.getAttribute("x"))
+                bounds.setAttribute('y', labelBounds.getAttribute("y"))
+                bounds.setAttribute('w', labelBounds.getAttribute("width"))
+                bounds.setAttribute('h', labelBounds.getAttribute("height"))
+                attributes.appendChild(bounds)
+
+    # parallel gateway
+    pGateways = doc.getElementsByTagName("parallelGateway")
+    for pGateway in pGateways:
+        AND = yawl.createElement("task")
+        AND.setAttribute("id", pGateway.getAttribute("id"))
+        processControlElements.appendChild(AND)
+
+        # name
+        name = yawl.createElement('name')
+        if pGateway.getAttribute("name") != "":
+            name.appendChild(yawl.createTextNode(pGateway.getAttribute("name")))
+            AND.appendChild(name)  
+
+        # flowsInto
+        #countOutgoing = len(pGateway.getElementsByTagName("outgoing"))
+        for out in pGateway.getElementsByTagName("outgoing"):
+            flowsInto = yawl.createElement('flowsInto')
+            AND.appendChild(flowsInto) 
+
+            #nextElementRef
+            nextElementRef = yawl.createElement('nextElementRef')
+            #get next Element
+            outgoing = pGateway.getElementsByTagName("outgoing")
+            flows = doc.getElementsByTagName("sequenceFlow")
+            for flow in flows:
+                if outgoing[0].firstChild.nodeValue == flow.getAttribute("id"):
+                    nextElementRef.setAttribute("id", flow.getAttribute("targetRef"))
+                    flowsInto.appendChild(nextElementRef)
+
+        #join
+        join = yawl.createElement('join')
+        join.setAttribute("code", "xor")
+        AND.appendChild(join) 
+
+        #split
+        split = yawl.createElement('split')
+        split.setAttribute("code", "and")
+        AND.appendChild(split) 
+
+        #ressourcing
+        ressourcing = yawl.createElement('ressourcing')
+        AND.appendChild(ressourcing) 
+
+        offer = yawl.createElement('offer')
+        offer.setAttribute("initiator", "user")
+        ressourcing.appendChild(offer) 
+
+        allocate = yawl.createElement('allocate')
+        allocate.setAttribute("initiator", "user")
+        ressourcing.appendChild(allocate) 
+
+        start = yawl.createElement('start')
+        start.setAttribute("initiator", "user")
+        ressourcing.appendChild(start) 
+
+        #layout
+        containerTask = yawl.createElement('container')
+        containerTask.setAttribute('id', pGateway.getAttribute("id"))
+        net.appendChild(containerTask)
+
+        vertex = yawl.createElement('vertex')
+        containerTask.appendChild(vertex)
+
+        attributes = yawl.createElement('attributes')
+        vertex.appendChild(attributes)
+
+        bounds = yawl.createElement('bounds')
+        #get Bounds from BPMN
+        shapes = doc.getElementsByTagName("bpmndi:BPMNShape")
+        for shape in shapes:
+            if shape.getAttribute("bpmnElement") == pGateway.getAttribute("id"):
+                shapeBounds = shape.getElementsByTagName("omgdc:Bounds")[0]
+
+                bounds.setAttribute('x', shapeBounds.getAttribute("x"))
+                bounds.setAttribute('y', shapeBounds.getAttribute("y"))
+                bounds.setAttribute('w', shapeBounds.getAttribute("width"))
+                bounds.setAttribute('h', shapeBounds.getAttribute("height"))
+                attributes.appendChild(bounds)
+
+                if len(shape.getElementsByTagName("omgdc:Bounds")) > 1:
+                    labelBounds = shape.getElementsByTagName("omgdc:Bounds")[1]
+                    labelE = yawl.createElement('label')
+                    containerTask.appendChild(labelE)
+
+                    attributes = yawl.createElement('attributes')
+                    labelE.appendChild(attributes)
+
+                    bounds = yawl.createElement('bounds')    
+                    bounds.setAttribute('x', labelBounds.getAttribute("x"))
+                    bounds.setAttribute('y', labelBounds.getAttribute("y"))
+                    bounds.setAttribute('w', labelBounds.getAttribute("width"))
+                    bounds.setAttribute('h', labelBounds.getAttribute("height"))
+                    attributes.appendChild(bounds)
+
+                # decorator
+                countOutgoing = len(pGateway.getElementsByTagName("outgoing"))
+                if countOutgoing > 1:
+                    # split
+                    decorator = yawl.createElement('decorator')
+                    decorator.setAttribute('type', 'AND_split')
+                    containerTask.appendChild(decorator)
+                    position = yawl.createElement('position') 
+                    position.appendChild( yawl.createTextNode('13') )
+                    decorator.appendChild(position)
+
+                    attributes = yawl.createElement('attributes')
+                    decorator.appendChild(attributes)
+
+                    bounds = yawl.createElement('bounds')
+                    x = float(shapeBounds.getAttribute("x"))+30    
+                    w = float(shapeBounds.getAttribute("width"))-20
+                    bounds.setAttribute('x', str(x))
+                    bounds.setAttribute('y', shapeBounds.getAttribute("y"))
+                    bounds.setAttribute('w', str(w) )
+                    bounds.setAttribute('h', shapeBounds.getAttribute("height"))
+                    attributes.appendChild(bounds)
+                else:
+                    # join
+                    decorator = yawl.createElement('decorator')
+                    decorator.setAttribute('type', 'AND_join')
+                    containerTask.appendChild(decorator)
+                
+                    position = yawl.createElement('position') 
+                    position.appendChild( yawl.createTextNode('12') )
+                    decorator.appendChild(position)
+
+                    attributes = yawl.createElement('attributes')
+                    decorator.appendChild(attributes)
+                   
+                    bounds = yawl.createElement('bounds')    
+                    x = float(shapeBounds.getAttribute("x"))-10    
+                    w = float(shapeBounds.getAttribute("width"))-20
+                    bounds.setAttribute('x', str(x))
+                    bounds.setAttribute('y', shapeBounds.getAttribute("y"))
+                    bounds.setAttribute('w', str(w) )
+                    bounds.setAttribute('h', shapeBounds.getAttribute("height"))
+                    attributes.appendChild(bounds)
+
+    # exklusive gateway
+    eGateways = doc.getElementsByTagName("exclusiveGateway")
+    for eGateway in eGateways:
+        XOR = yawl.createElement("task")
+        XOR.setAttribute("id", eGateway.getAttribute("id"))
+        processControlElements.appendChild(XOR)
+
+        # name
+        name = yawl.createElement('name')
+        if eGateway.getAttribute("name") != "":
+            name.appendChild(yawl.createTextNode(eGateway.getAttribute("name")))
+            XOR.appendChild(name)  
+
+        # flowsInto
+        for out in eGateway.getElementsByTagName("outgoing"):
+            flowsInto = yawl.createElement('flowsInto')
+            XOR.appendChild(flowsInto) 
+
+            #nextElementRef
+            nextElementRef = yawl.createElement('nextElementRef')
+            #get next Element
+            outgoing = eGateway.getElementsByTagName("outgoing")
+            flows = doc.getElementsByTagName("sequenceFlow")
+            for flow in flows:
+                if outgoing[0].firstChild.nodeValue == flow.getAttribute("id"):
+                    nextElementRef.setAttribute("id", flow.getAttribute("targetRef"))
+                    flowsInto.appendChild(nextElementRef)
+
+        #join
+        join = yawl.createElement('join')
+        join.setAttribute("code", "xor")
+        XOR.appendChild(join) 
+
+        #split
+        split = yawl.createElement('split')
+        split.setAttribute("code", "and")
+        XOR.appendChild(split) 
+
+        #ressourcing
+        ressourcing = yawl.createElement('ressourcing')
+        XOR.appendChild(ressourcing) 
+
+        offer = yawl.createElement('offer')
+        offer.setAttribute("initiator", "user")
+        ressourcing.appendChild(offer) 
+
+        allocate = yawl.createElement('allocate')
+        allocate.setAttribute("initiator", "user")
+        ressourcing.appendChild(allocate) 
+
+        start = yawl.createElement('start')
+        start.setAttribute("initiator", "user")
+        ressourcing.appendChild(start) 
+
+        #layout
+        containerTask = yawl.createElement('container')
+        containerTask.setAttribute('id', eGateway.getAttribute("id"))
+        net.appendChild(containerTask)
+
+        vertex = yawl.createElement('vertex')
+        containerTask.appendChild(vertex)
+
+        attributes = yawl.createElement('attributes')
+        vertex.appendChild(attributes)
+
+        bounds = yawl.createElement('bounds')
+        #get Bounds from BPMN
+        shapes = doc.getElementsByTagName("bpmndi:BPMNShape")
+        for shape in shapes:
+            if shape.getAttribute("bpmnElement") == eGateway.getAttribute("id"):
+                shapeBounds = shape.getElementsByTagName("omgdc:Bounds")[0]
+
+                bounds.setAttribute('x', shapeBounds.getAttribute("x"))
+                bounds.setAttribute('y', shapeBounds.getAttribute("y"))
+                bounds.setAttribute('w', shapeBounds.getAttribute("width"))
+                bounds.setAttribute('h', shapeBounds.getAttribute("height"))
+                attributes.appendChild(bounds)
+
+                if len(shape.getElementsByTagName("omgdc:Bounds")) > 1:
+                    labelBounds = shape.getElementsByTagName("omgdc:Bounds")[1]
+                    labelE = yawl.createElement('label')
+                    containerTask.appendChild(labelE)
+
+                    attributes = yawl.createElement('attributes')
+                    labelE.appendChild(attributes)
+
+                    bounds = yawl.createElement('bounds')    
+                    bounds.setAttribute('x', labelBounds.getAttribute("x"))
+                    bounds.setAttribute('y', labelBounds.getAttribute("y"))
+                    bounds.setAttribute('w', labelBounds.getAttribute("width"))
+                    bounds.setAttribute('h', labelBounds.getAttribute("height"))
+                    attributes.appendChild(bounds)
+
+                # decorator
+                
+                decorator = yawl.createElement('decorator')
+                decorator.setAttribute('type', 'XOR_split')
+                containerTask.appendChild(decorator)
+                position = yawl.createElement('position') 
+                position.appendChild( yawl.createTextNode('13') )
+                decorator.appendChild(position)
+
+                attributes = yawl.createElement('attributes')
+                decorator.appendChild(attributes)
+
+                bounds = yawl.createElement('bounds')
+                x = float(shapeBounds.getAttribute("x"))+30    
+                w = float(shapeBounds.getAttribute("width"))-20
+                bounds.setAttribute('x', str(x))
+                bounds.setAttribute('y', shapeBounds.getAttribute("y"))
+                bounds.setAttribute('w', str(w) )
+                bounds.setAttribute('h', shapeBounds.getAttribute("height"))
+                attributes.appendChild(bounds)   
+
     # Sequence Flow
     flows = doc.getElementsByTagName("sequenceFlow")
+    print("Flows: " + str(len(flows)))
     for flow in flows:
+        print(flow)
         flowYawl = yawl.createElement("flow")
         flowYawl.setAttribute("source", flow.getAttribute("sourceRef"))
         flowYawl.setAttribute("target", flow.getAttribute("targetRef"))
