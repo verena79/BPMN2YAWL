@@ -1,8 +1,4 @@
-from mailbox import NotEmptyError
 from xml.dom import minidom
-from xml.etree.ElementTree import tostring
-
-from numpy import empty
 
 def parser(bpmnProcess, path):
     doc = minidom.parse(bpmnProcess)
@@ -42,7 +38,7 @@ def parser(bpmnProcess, path):
     meta.appendChild(coverage)
     
     version = yawl.createElement('version')
-    version.appendChild( yawl.createTextNode("0.2") )
+    version.appendChild( yawl.createTextNode("0.1") )
     meta.appendChild(version)
 
     persistent = yawl.createElement('persistent')
@@ -70,6 +66,11 @@ def parser(bpmnProcess, path):
     # layout
     layout = yawl.createElement('layout')
     specificationSet.appendChild(layout)
+
+    locale = yawl.createElement('locale')
+    locale.setAttribute('language', 'de')
+    locale.setAttribute('country', 'AT')
+    layout.appendChild(locale)
 
     specificationL = yawl.createElement('specification')
     specificationL.setAttribute('id', 'Prozess')
@@ -117,8 +118,9 @@ def parser(bpmnProcess, path):
 
         # name
         name = yawl.createElement('name')
-        name.appendChild(yawl.createTextNode(start.getAttribute("name")))
-        startYawl.appendChild(name)  
+        if start.getAttribute("name") != "":
+            name.appendChild(yawl.createTextNode(start.getAttribute("name")))
+            startYawl.appendChild(name)   
 
         # flowsInto
         flowsInto = yawl.createElement('flowsInto')
@@ -183,8 +185,9 @@ def parser(bpmnProcess, path):
 
         # name
         name = yawl.createElement('name')
-        name.appendChild(yawl.createTextNode(task.getAttribute("name")))
-        newtaskYawl.appendChild(name)  
+        if task.getAttribute("name") != "":
+            name.appendChild(yawl.createTextNode(task.getAttribute("name")))
+            newtaskYawl.appendChild(name)   
 
         # flowsInto
         flowsInto = yawl.createElement('flowsInto')
@@ -298,8 +301,9 @@ def parser(bpmnProcess, path):
 
         # name
         name = yawl.createElement('name')
-        name.appendChild(yawl.createTextNode(end.getAttribute("name")))
-        endYawl.appendChild(name)
+        if end.getAttribute("name") != "":
+            name.appendChild(yawl.createTextNode(end.getAttribute("name")))
+            endYawl.appendChild(name) 
 
         #layout
         container = yawl.createElement('container')
@@ -340,7 +344,6 @@ def parser(bpmnProcess, path):
                 attributes.appendChild(bounds)
     
     # sub process
-    # TODO: fix bug.. composite task is shown like normal task
     subProcesses = doc.getElementsByTagName("subProcess")
     for subP in subProcesses:
         compositeTask = yawl.createElement("task")
@@ -349,8 +352,9 @@ def parser(bpmnProcess, path):
 
         # name
         name = yawl.createElement('name')
-        name.appendChild(yawl.createTextNode(subP.getAttribute("name")))
-        compositeTask.appendChild(name)  
+        if subP.getAttribute("name") != "":
+            name.appendChild(yawl.createTextNode(subP.getAttribute("name")))
+            compositeTask.appendChild(name)   
 
         # flowsInto
         flowsInto = yawl.createElement('flowsInto')
@@ -368,7 +372,7 @@ def parser(bpmnProcess, path):
         
         #is Default Flow
         default = yawl.createElement('isDefaultFlow')
-        compositeTask.appendChild(default)
+        flowsInto.appendChild(default)
 
         #join
         join = yawl.createElement('join')
@@ -378,7 +382,12 @@ def parser(bpmnProcess, path):
         #split
         split = yawl.createElement('split')
         split.setAttribute("code", "and")
-        compositeTask.appendChild(split) 
+        compositeTask.appendChild(split)
+
+        #decomposesTo
+        decompose = yawl.createElement('decomposesTo')
+        decompose.setAttribute("id", "")
+        compositeTask.appendChild(decompose)  
 
         #layout
         containerTask = yawl.createElement('container')
@@ -449,7 +458,7 @@ def parser(bpmnProcess, path):
 
         #join
         join = yawl.createElement('join')
-        join.setAttribute("code", "xor")
+        join.setAttribute("code", "and")
         AND.appendChild(join) 
 
         #split
@@ -457,21 +466,21 @@ def parser(bpmnProcess, path):
         split.setAttribute("code", "and")
         AND.appendChild(split) 
 
-        #ressourcing
-        ressourcing = yawl.createElement('ressourcing')
-        AND.appendChild(ressourcing) 
+        # #ressourcing
+        # ressourcing = yawl.createElement('ressourcing')
+        # AND.appendChild(ressourcing) 
 
-        offer = yawl.createElement('offer')
-        offer.setAttribute("initiator", "user")
-        ressourcing.appendChild(offer) 
+        # offer = yawl.createElement('offer')
+        # offer.setAttribute("initiator", "user")
+        # ressourcing.appendChild(offer) 
 
-        allocate = yawl.createElement('allocate')
-        allocate.setAttribute("initiator", "user")
-        ressourcing.appendChild(allocate) 
+        # allocate = yawl.createElement('allocate')
+        # allocate.setAttribute("initiator", "user")
+        # ressourcing.appendChild(allocate) 
 
-        start = yawl.createElement('start')
-        start.setAttribute("initiator", "user")
-        ressourcing.appendChild(start) 
+        # start = yawl.createElement('start')
+        # start.setAttribute("initiator", "user")
+        # ressourcing.appendChild(start) 
 
         #layout
         containerTask = yawl.createElement('container')
@@ -527,11 +536,10 @@ def parser(bpmnProcess, path):
                     decorator.appendChild(attributes)
 
                     bounds = yawl.createElement('bounds')
-                    x = float(shapeBounds.getAttribute("x"))+30    
-                    w = float(shapeBounds.getAttribute("width"))-20
+                    x = float(shapeBounds.getAttribute("x"))+30   
                     bounds.setAttribute('x', str(x))
                     bounds.setAttribute('y', shapeBounds.getAttribute("y"))
-                    bounds.setAttribute('w', str(w) )
+                    bounds.setAttribute('w', '11')
                     bounds.setAttribute('h', shapeBounds.getAttribute("height"))
                     attributes.appendChild(bounds)
                 else:
@@ -549,10 +557,9 @@ def parser(bpmnProcess, path):
                    
                     bounds = yawl.createElement('bounds')    
                     x = float(shapeBounds.getAttribute("x"))-10    
-                    w = float(shapeBounds.getAttribute("width"))-20
                     bounds.setAttribute('x', str(x))
                     bounds.setAttribute('y', shapeBounds.getAttribute("y"))
-                    bounds.setAttribute('w', str(w) )
+                    bounds.setAttribute('w', '11')
                     bounds.setAttribute('h', shapeBounds.getAttribute("height"))
                     attributes.appendChild(bounds)
 
@@ -584,6 +591,18 @@ def parser(bpmnProcess, path):
                     nextElementRef.setAttribute("id", flow.getAttribute("targetRef"))
                     flowsInto.appendChild(nextElementRef)
 
+        # set predicate for first flowsInto
+        firstFlow = XOR.getElementsByTagName("flowsInto")[0]    
+        predicate = yawl.createElement('predicate')
+        predicate.setAttribute('ordering', '0')
+        predicate.appendChild( yawl.createTextNode('true()') )
+        firstFlow.appendChild(predicate)
+
+        # set default for other flow
+        otherFlow = XOR.getElementsByTagName("flowsInto")[1]    
+        default = yawl.createElement('isDefaultFlow')
+        otherFlow.appendChild(default)
+
         #join
         join = yawl.createElement('join')
         join.setAttribute("code", "xor")
@@ -591,24 +610,24 @@ def parser(bpmnProcess, path):
 
         #split
         split = yawl.createElement('split')
-        split.setAttribute("code", "and")
+        split.setAttribute("code", "xor")
         XOR.appendChild(split) 
 
-        #ressourcing
-        ressourcing = yawl.createElement('ressourcing')
-        XOR.appendChild(ressourcing) 
+        # #ressourcing
+        # ressourcing = yawl.createElement('ressourcing')
+        # XOR.appendChild(ressourcing) 
 
-        offer = yawl.createElement('offer')
-        offer.setAttribute("initiator", "user")
-        ressourcing.appendChild(offer) 
+        # offer = yawl.createElement('offer')
+        # offer.setAttribute("initiator", "user")
+        # ressourcing.appendChild(offer) 
 
-        allocate = yawl.createElement('allocate')
-        allocate.setAttribute("initiator", "user")
-        ressourcing.appendChild(allocate) 
+        # allocate = yawl.createElement('allocate')
+        # allocate.setAttribute("initiator", "user")
+        # ressourcing.appendChild(allocate) 
 
-        start = yawl.createElement('start')
-        start.setAttribute("initiator", "user")
-        ressourcing.appendChild(start) 
+        # start = yawl.createElement('start')
+        # start.setAttribute("initiator", "user")
+        # ressourcing.appendChild(start) 
 
         #layout
         containerTask = yawl.createElement('container')
@@ -662,27 +681,37 @@ def parser(bpmnProcess, path):
                 decorator.appendChild(attributes)
 
                 bounds = yawl.createElement('bounds')
-                x = float(shapeBounds.getAttribute("x"))+30    
-                w = float(shapeBounds.getAttribute("width"))-20
+                x = float(shapeBounds.getAttribute("x"))+30 
                 bounds.setAttribute('x', str(x))
                 bounds.setAttribute('y', shapeBounds.getAttribute("y"))
-                bounds.setAttribute('w', str(w) )
+                bounds.setAttribute('w', '11' )
                 bounds.setAttribute('h', shapeBounds.getAttribute("height"))
                 attributes.appendChild(bounds)   
 
     # Sequence Flow
     flows = doc.getElementsByTagName("sequenceFlow")
-    print("Flows: " + str(len(flows)))
     for flow in flows:
-        print(flow)
         flowYawl = yawl.createElement("flow")
         flowYawl.setAttribute("source", flow.getAttribute("sourceRef"))
         flowYawl.setAttribute("target", flow.getAttribute("targetRef"))
         net.appendChild(flowYawl)
 
         #ports
+        changeports = []
+        source = flow.getAttribute("sourceRef")
+        target = flow.getAttribute("targetRef")
+        for ex in eGateways:
+            changeports.append(ex.getAttribute('id'))
+
         ports = yawl.createElement('ports')
-        ports.setAttribute("in", "13")
+
+        if source in changeports:
+            ports.setAttribute("in", "2")
+        else:
+            ports.setAttribute("in", "13")
+
+        # ports = yawl.createElement('ports')
+        # ports.setAttribute("in", "13")
         ports.setAttribute("out", "12")
         flowYawl.appendChild(ports)
 
