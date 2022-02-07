@@ -152,8 +152,7 @@ def parser(bpmnProcess, path):
         shapes = doc.getElementsByTagName("bpmndi:BPMNShape")
         for shape in shapes:
             if shape.getAttribute("bpmnElement") == start.getAttribute("id"):
-                shapeBounds = shape.getElementsByTagName("omgdc:Bounds")[0]
-                labelBounds = shape.getElementsByTagName("omgdc:Bounds")[1]       
+                shapeBounds = shape.getElementsByTagName("omgdc:Bounds")[0]      
 
                 bounds.setAttribute('x', shapeBounds.getAttribute("x"))
                 bounds.setAttribute('y', shapeBounds.getAttribute("y"))
@@ -161,20 +160,20 @@ def parser(bpmnProcess, path):
                 bounds.setAttribute('h', shapeBounds.getAttribute("height"))
                 attributes.appendChild(bounds)
 
-                labelE = yawl.createElement('label')
-                container.appendChild(labelE)
+                if len(shape.getElementsByTagName("omgdc:Bounds")) > 1:
+                    labelBounds = shape.getElementsByTagName("omgdc:Bounds")[1]
+                    labelE = yawl.createElement('label')
+                    container.appendChild(labelE)
 
-                attributes = yawl.createElement('attributes')
-                labelE.appendChild(attributes)
+                    attributes = yawl.createElement('attributes')
+                    labelE.appendChild(attributes)
 
-                bounds = yawl.createElement('bounds')    
-                bounds.setAttribute('x', labelBounds.getAttribute("x"))
-                bounds.setAttribute('y', labelBounds.getAttribute("y"))
-                bounds.setAttribute('w', labelBounds.getAttribute("width"))
-                bounds.setAttribute('h', labelBounds.getAttribute("height"))
-                attributes.appendChild(bounds)
-
-
+                    bounds = yawl.createElement('bounds')    
+                    bounds.setAttribute('x', labelBounds.getAttribute("x"))
+                    bounds.setAttribute('y', labelBounds.getAttribute("y"))
+                    bounds.setAttribute('w', labelBounds.getAttribute("width"))
+                    bounds.setAttribute('h', labelBounds.getAttribute("height"))
+                    attributes.appendChild(bounds)
 
     # task  
     tasks = doc.getElementsByTagName("task")
@@ -245,8 +244,7 @@ def parser(bpmnProcess, path):
         shapes = doc.getElementsByTagName("bpmndi:BPMNShape")
         for shape in shapes:
             if shape.getAttribute("bpmnElement") == task.getAttribute("id"):
-                shapeBounds = shape.getElementsByTagName("omgdc:Bounds")[0]
-                labelBounds = shape.getElementsByTagName("omgdc:Bounds")[1]       
+                shapeBounds = shape.getElementsByTagName("omgdc:Bounds")[0]    
 
                 bounds.setAttribute('x', shapeBounds.getAttribute("x"))
                 bounds.setAttribute('y', shapeBounds.getAttribute("y"))
@@ -254,18 +252,20 @@ def parser(bpmnProcess, path):
                 bounds.setAttribute('h', shapeBounds.getAttribute("height"))
                 attributes.appendChild(bounds)
 
-                labelE = yawl.createElement('label')
-                containerTask.appendChild(labelE)
+                if len(shape.getElementsByTagName("omgdc:Bounds")) > 1:
+                    labelBounds = shape.getElementsByTagName("omgdc:Bounds")[1]
+                    labelE = yawl.createElement('label')
+                    containerTask.appendChild(labelE)
 
-                attributes = yawl.createElement('attributes')
-                labelE.appendChild(attributes)
+                    attributes = yawl.createElement('attributes')
+                    labelE.appendChild(attributes)
 
-                bounds = yawl.createElement('bounds')    
-                bounds.setAttribute('x', labelBounds.getAttribute("x"))
-                bounds.setAttribute('y', labelBounds.getAttribute("y"))
-                bounds.setAttribute('w', labelBounds.getAttribute("width"))
-                bounds.setAttribute('h', labelBounds.getAttribute("height"))
-                attributes.appendChild(bounds)
+                    bounds = yawl.createElement('bounds')    
+                    bounds.setAttribute('x', labelBounds.getAttribute("x"))
+                    bounds.setAttribute('y', labelBounds.getAttribute("y"))
+                    bounds.setAttribute('w', labelBounds.getAttribute("width"))
+                    bounds.setAttribute('h', labelBounds.getAttribute("height"))
+                    attributes.appendChild(bounds)
 
             # if task has two incomings - set XOR Join
             # decorator
@@ -321,8 +321,7 @@ def parser(bpmnProcess, path):
         shapes = doc.getElementsByTagName("bpmndi:BPMNShape")
         for shape in shapes:
             if shape.getAttribute("bpmnElement") == end.getAttribute("id"):
-                shapeBounds = shape.getElementsByTagName("omgdc:Bounds")[0]
-                labelBounds = shape.getElementsByTagName("omgdc:Bounds")[1]       
+                shapeBounds = shape.getElementsByTagName("omgdc:Bounds")[0]      
 
                 bounds.setAttribute('x', shapeBounds.getAttribute("x"))
                 bounds.setAttribute('y', shapeBounds.getAttribute("y"))
@@ -330,18 +329,20 @@ def parser(bpmnProcess, path):
                 bounds.setAttribute('h', shapeBounds.getAttribute("height"))
                 attributes.appendChild(bounds)
 
-                labelE = yawl.createElement('label')
-                container.appendChild(labelE)
+                if len(shape.getElementsByTagName("omgdc:Bounds")) > 1:
+                    labelBounds = shape.getElementsByTagName("omgdc:Bounds")[1]
+                    labelE = yawl.createElement('label')
+                    container.appendChild(labelE)
 
-                attributes = yawl.createElement('attributes')
-                labelE.appendChild(attributes)
+                    attributes = yawl.createElement('attributes')
+                    labelE.appendChild(attributes)
 
-                bounds = yawl.createElement('bounds')    
-                bounds.setAttribute('x', labelBounds.getAttribute("x"))
-                bounds.setAttribute('y', labelBounds.getAttribute("y"))
-                bounds.setAttribute('w', labelBounds.getAttribute("width"))
-                bounds.setAttribute('h', labelBounds.getAttribute("height"))
-                attributes.appendChild(bounds)
+                    bounds = yawl.createElement('bounds')    
+                    bounds.setAttribute('x', labelBounds.getAttribute("x"))
+                    bounds.setAttribute('y', labelBounds.getAttribute("y"))
+                    bounds.setAttribute('w', labelBounds.getAttribute("width"))
+                    bounds.setAttribute('h', labelBounds.getAttribute("height"))
+                    attributes.appendChild(bounds)
     
     # sub process
     subProcesses = doc.getElementsByTagName("subProcess")
@@ -405,8 +406,7 @@ def parser(bpmnProcess, path):
         shapes = doc.getElementsByTagName("bpmndi:BPMNShape")
         for shape in shapes:
             if shape.getAttribute("bpmnElement") == subP.getAttribute("id"):
-                shapeBounds = shape.getElementsByTagName("omgdc:Bounds")[0]
-                labelBounds = shape.getElementsByTagName("omgdc:Bounds")[1]       
+                shapeBounds = shape.getElementsByTagName("omgdc:Bounds")[0]      
 
                 bounds.setAttribute('x', shapeBounds.getAttribute("x"))
                 bounds.setAttribute('y', shapeBounds.getAttribute("y"))
@@ -414,18 +414,20 @@ def parser(bpmnProcess, path):
                 bounds.setAttribute('h', shapeBounds.getAttribute("height"))
                 attributes.appendChild(bounds)
 
-                labelE = yawl.createElement('label')
-                containerTask.appendChild(labelE)
+                if len(shape.getElementsByTagName("omgdc:Bounds")) > 1:
+                    labelBounds = shape.getElementsByTagName("omgdc:Bounds")[1]
+                    labelE = yawl.createElement('label')
+                    containerTask.appendChild(labelE)
 
-                attributes = yawl.createElement('attributes')
-                labelE.appendChild(attributes)
+                    attributes = yawl.createElement('attributes')
+                    labelE.appendChild(attributes)
 
-                bounds = yawl.createElement('bounds')    
-                bounds.setAttribute('x', labelBounds.getAttribute("x"))
-                bounds.setAttribute('y', labelBounds.getAttribute("y"))
-                bounds.setAttribute('w', labelBounds.getAttribute("width"))
-                bounds.setAttribute('h', labelBounds.getAttribute("height"))
-                attributes.appendChild(bounds)
+                    bounds = yawl.createElement('bounds')    
+                    bounds.setAttribute('x', labelBounds.getAttribute("x"))
+                    bounds.setAttribute('y', labelBounds.getAttribute("y"))
+                    bounds.setAttribute('w', labelBounds.getAttribute("width"))
+                    bounds.setAttribute('h', labelBounds.getAttribute("height"))
+                    attributes.appendChild(bounds)
 
     # parallel gateway
     pGateways = doc.getElementsByTagName("parallelGateway")
@@ -449,10 +451,9 @@ def parser(bpmnProcess, path):
             #nextElementRef
             nextElementRef = yawl.createElement('nextElementRef')
             #get next Element
-            outgoing = pGateway.getElementsByTagName("outgoing")
             flows = doc.getElementsByTagName("sequenceFlow")
             for flow in flows:
-                if outgoing[0].firstChild.nodeValue == flow.getAttribute("id"):
+                if out.firstChild.nodeValue == flow.getAttribute("id"):
                     nextElementRef.setAttribute("id", flow.getAttribute("targetRef"))
                     flowsInto.appendChild(nextElementRef)
 
@@ -584,24 +585,17 @@ def parser(bpmnProcess, path):
             #nextElementRef
             nextElementRef = yawl.createElement('nextElementRef')
             #get next Element
-            outgoing = eGateway.getElementsByTagName("outgoing")
             flows = doc.getElementsByTagName("sequenceFlow")
             for flow in flows:
-                if outgoing[0].firstChild.nodeValue == flow.getAttribute("id"):
+                if out.firstChild.nodeValue == flow.getAttribute("id"):
                     nextElementRef.setAttribute("id", flow.getAttribute("targetRef"))
                     flowsInto.appendChild(nextElementRef)
 
-        # set predicate for first flowsInto
-        firstFlow = XOR.getElementsByTagName("flowsInto")[0]    
-        predicate = yawl.createElement('predicate')
-        predicate.setAttribute('ordering', '0')
-        predicate.appendChild( yawl.createTextNode('true()') )
-        firstFlow.appendChild(predicate)
-
-        # set default for other flow
-        otherFlow = XOR.getElementsByTagName("flowsInto")[1]    
-        default = yawl.createElement('isDefaultFlow')
-        otherFlow.appendChild(default)
+                    #predicate
+                    predicate = yawl.createElement('predicate')
+                    predicate.setAttribute('ordering', "0")
+                    predicate.appendChild( yawl.createTextNode('true()') )
+                    flowsInto.appendChild(predicate)
 
         #join
         join = yawl.createElement('join')
@@ -697,21 +691,8 @@ def parser(bpmnProcess, path):
         net.appendChild(flowYawl)
 
         #ports
-        changeports = []
-        source = flow.getAttribute("sourceRef")
-        target = flow.getAttribute("targetRef")
-        for ex in eGateways:
-            changeports.append(ex.getAttribute('id'))
-
         ports = yawl.createElement('ports')
-
-        if source in changeports:
-            ports.setAttribute("in", "2")
-        else:
-            ports.setAttribute("in", "13")
-
-        # ports = yawl.createElement('ports')
-        # ports.setAttribute("in", "13")
+        ports.setAttribute("in", "13")
         ports.setAttribute("out", "12")
         flowYawl.appendChild(ports)
 
@@ -722,7 +703,17 @@ def parser(bpmnProcess, path):
         linestyle = yawl.createElement('lineStyle')
         linestyle.appendChild(yawl.createTextNode("11"))
         attributes.appendChild(linestyle)
-
+        
+        #label
+        if flow.getAttribute("name") != "":
+            label = yawl.createElement('label')
+            label.appendChild(yawl.createTextNode(flow.getAttribute("name"))) 
+            flowYawl.appendChild(label)
+            
+            offset = yawl.createElement('offset')
+            offset.setAttribute("x", "0")
+            offset.setAttribute("y", "0")
+            attributes.appendChild(offset) 
 
     yawl_str = yawl.toprettyxml(indent ="\t") 
     save_path_file = path
