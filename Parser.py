@@ -372,8 +372,8 @@ def parser(bpmnProcess, path):
                 flowsInto.appendChild(nextElementRef)
         
         #is Default Flow
-        default = yawl.createElement('isDefaultFlow')
-        flowsInto.appendChild(default)
+        # default = yawl.createElement('isDefaultFlow')
+        # flowsInto.appendChild(default)
 
         #join
         join = yawl.createElement('join')
@@ -586,16 +586,21 @@ def parser(bpmnProcess, path):
             nextElementRef = yawl.createElement('nextElementRef')
             #get next Element
             flows = doc.getElementsByTagName("sequenceFlow")
-            for flow in flows:
+            for idx, flow in enumerate(flows):
                 if out.firstChild.nodeValue == flow.getAttribute("id"):
                     nextElementRef.setAttribute("id", flow.getAttribute("targetRef"))
                     flowsInto.appendChild(nextElementRef)
 
-                    #predicate
-                    predicate = yawl.createElement('predicate')
-                    predicate.setAttribute('ordering', "0")
-                    predicate.appendChild( yawl.createTextNode('true()') )
-                    flowsInto.appendChild(predicate)
+                    if out == eGateway.getElementsByTagName("outgoing")[0]:
+                        #default
+                        default = yawl.createElement('isDefaultFlow')
+                        flowsInto.appendChild(default)
+                    else:
+                        #predicate
+                        predicate = yawl.createElement('predicate')
+                        predicate.setAttribute('ordering', str(idx))
+                        predicate.appendChild( yawl.createTextNode('true()') )
+                        flowsInto.appendChild(predicate)
 
         #join
         join = yawl.createElement('join')
